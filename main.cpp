@@ -12,7 +12,25 @@ struct {
     float b;
 } state;
 
-float b = 0;
+const char* backend_name(sg_backend b)
+{
+    switch (b) {
+    case SG_BACKEND_GLCORE:
+        return "OpenGL Core (Linux/Windows)";
+    case SG_BACKEND_GLES3:
+        return "OpenGLES 3 (Web/Android)";
+    case SG_BACKEND_D3D11:
+        return "Direct3D 11 (Windows)";
+    case SG_BACKEND_METAL_IOS:
+        return "Metal (macOS/iOS)";
+    case SG_BACKEND_WGPU:
+        return "WebGPU";
+    case SG_BACKEND_DUMMY:
+        return "Dummy (No Graphics)";
+    default:
+        return "Unknown Backend";
+    }
+}
 
 // --- Inicialización ---
 void init(void)
@@ -24,6 +42,12 @@ void init(void)
     desc.environment = sglue_environment();
 
     sg_setup(&desc);
+
+    sg_backend backend = sg_query_backend();
+    printf("------------------------------------------------\n");
+    printf("SOKOL INICIADO EXITOSAMENTE\n");
+    printf("Backend Gráfico: %s\n", backend_name(backend));
+    printf("------------------------------------------------\n");
 
     // Configurar la acción de limpieza
     state.pass_action = {};
@@ -71,13 +95,16 @@ void event(const sapp_event* e)
 // --- Main ---
 sapp_desc sokol_main(int argc, char* argv[])
 {
+    (void)argc;
+    (void)argv;
     sapp_desc desc = {};
     desc.init_cb = init;
     desc.frame_cb = frame;
     desc.cleanup_cb = cleanup;
     desc.event_cb = event;
-    desc.width = 800;
-    desc.height = 600;
-    desc.window_title = "Hola Sokol (API 2025)";
+    desc.width = 640;
+    desc.height = 480;
+    desc.window_title = "Hola Mundo Sokol 2025";
+    desc.icon.sokol_default = true;
     return desc;
 }
