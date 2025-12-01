@@ -7,20 +7,18 @@
 
 // --- Shaders (GLSL 300 ES) ---
 const char* vs_src = "#version 300 es\n"
-                     "layout(location=0) in vec4 position;\n"
-                     "layout(location=1) in vec4 color0;\n"
-                     "out vec4 color;\n"
+                     "layout(location=0) in vec2 position;\n"
                      "void main() {\n"
-                     "  gl_Position = position;\n"
-                     "  color = color0;\n"
+                     "  gl_Position = vec4(position, 0.0, 1.0);\n"
+
                      "}\n";
 
 const char* fs_src = "#version 300 es\n"
                      "precision mediump float;\n"
-                     "in vec4 color;\n"
+
                      "out vec4 frag_color;\n"
                      "void main() {\n"
-                     "  frag_color = color;\n"
+                     "  frag_color = vec4(0.0, 0.0, 1.0, 1.0 );\n"
                      "}\n";
 
 // --- Estado ---
@@ -42,10 +40,13 @@ static void init(void)
 
     // Datos de Vértices
     float vertices[] = {
-        // x, y, z,      r, g, b, a
-        0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f
+        // x, y
+        0.0f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
     };
 
     // 1. Crear Buffer
@@ -62,7 +63,6 @@ static void init(void)
 
     // Atributos
     shd_desc.attrs[0].glsl_name = "position";
-    shd_desc.attrs[1].glsl_name = "color0";
     shd_desc.label = "triangle-shader";
 
     sg_shader shd = sg_make_shader(&shd_desc);
@@ -70,8 +70,7 @@ static void init(void)
     // 3. Crear Pipeline
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = shd;
-    pip_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT3; // x,y,z
-    pip_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT4; // r,g,b,a
+    pip_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2; // x,y
     pip_desc.primitive_type = SG_PRIMITIVETYPE_TRIANGLES;
     pip_desc.label = "triangle-pipeline";
 

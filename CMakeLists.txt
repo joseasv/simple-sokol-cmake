@@ -1,29 +1,68 @@
 cmake_minimum_required(VERSION 3.10)
 
 # --- 1. Configuración Dinámica del Archivo Fuente ---
-
-# Definir una variable 'APP_SRC' que por defecto sea "main.cpp"
-# Esta variable se puede sobreescribir desde la terminal con -DAPP_SRC=...
 set(APP_SRC "main.cpp" CACHE STRING "Archivo fuente de entrada")
 
-# Extraer el nombre del archivo sin la extensión (ej: "01_TrianguloAzul")
+# Extraer el nombre SIN extensión (ej: de "01_Triangulo.cpp" saca "01_Triangulo")
 get_filename_component(APP_NAME ${APP_SRC} NAME_WE)
 
-# Inicializar el proyecto con el nombre del archivo
 project(${APP_NAME})
 
-message(STATUS "Compilando archivo fuente: ${APP_SRC}")
-message(STATUS "Nombre del ejecutable: ${APP_NAME}")
+message(STATUS "------------------------------------------------")
+message(STATUS "Proyecto: ${APP_NAME}")
+message(STATUS "Fuente C++: ${APP_SRC}")
 
-# --- 2. Configuración Estándar ---
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- 3. Crear el Ejecutable ---
-# Usamos las variables dinámicas aquí
-add_executable(${APP_NAME} ${APP_SRC})
+# --- 2. DETECCIÓN Y COMPILACIÓN DE SHADERS (sokol-shdc) ---
 
-# --- 4. Selección de Backend (Tu lógica anterior) ---
+# Usamos APP_NAME para buscar el shader (ej: 01_Triangulo.glsl)
+set(SHADER_FILE "${APP_NAME}.glsl")
+set(SHADER_SRC "${CMAKE_CURRENT_SOURCE_DIR}/${SHADER_FILE}")
+set(SHADER_HEADER "${CMAKE_CURRENT_BINARY_DIR}/${APP_NAME}.glsl.h")
+
+# Definir ruta de la herramienta según el SO
+if(WIN32)
+    set(SHDC_TOOL "${CMAKE_SOURCE_DIR}/tools/sokol-shdc.exe")
+elseif(APPLE)
+    set(SHDC_TOOL "${CMAKE_SOURCE_DIR}/tools/sokol-shdc")
+else()
+    set(SHDC_TOOL "${CMAKE_SOURCE_DIR}/tools/sokol-shdc")
+endif()
+
+# Variable para guardar los shaders generados (si existen)
+set(APP_GENERATED_FILES "")
+
+if(EXISTS "${SHADER_SRC}")
+    message(STATUS "Shader encontrado: ${SHADER_FILE}")
+    message(STATUS "Herramienta shdc: ${SHDC_TOOL}")
+
+    # Definir lenguajes de salida
+    set(SLANG "glsl430:glsl300es:hlsl5:metal_macos")
+
+    add_custom_command(
+        OUTPUT ${SHADER_HEADER}
+        COMMAND ${SHDC_TOOL} --input ${SHADER_SRC} --output ${SHADER_HEADER} --slang ${SLANG}
+        DEPENDS ${SHADER_SRC}
+        COMMENT "Compilando Shader ${SHADER_FILE}..."
+    )
+
+    # Añadimos el header a la lista de archivos generados
+    list(APPEND APP_GENERATED_FILES ${SHADER_HEADER})
+else()
+    message(WARNING "AVISO: No se encontró ${SHADER_FILE}. Si tu código usa shaders, fallará al compilar.")
+endif()
+
+# --- 3. Crear el Ejecutable ---
+
+# Añadimos tanto el .cpp como el .h generado al ejecutable
+add_executable(${APP_NAME} ${APP_SRC} ${APP_GENERATED_FILES})
+
+# Incluimos el directorio de build para poder hacer #include "archivo.glsl.h"
+target_include_directories(${APP_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+# --- 4. Selección de Backend ---
 
 if(EMSCRIPTEN)
     target_compile_definitions(${APP_NAME} PRIVATE SOKOL_GLES3)
