@@ -7,8 +7,8 @@
 #include "sokol_glue.h"
 #include "sokol_log.h"
 
-// Incluimos el shader generado
-#include "04_Textura.glsl.h"
+// Incluimos el NUEVO shader generado
+#include "04TexturaColor.glsl.h"
 
 #define CHECKERBOARD_SIZE 64
 
@@ -29,29 +29,31 @@ static void init(void) {
     sgdesc.logger.func = slog_func;
     sg_setup(&sgdesc);
 
-    // --- 1. Vértices y Buffer de Vértices ---
-    typedef struct { float x, y; float u, v; } vertex_t;
+    // --- 1. Vértices y Buffer de Vértices (con color) ---
+    typedef struct { float x, y; float u, v; float r, g, b; } vertex_t;
     const vertex_t vertices[] = {
-        { -0.5f, -0.5f,  0.0f, 0.0f }, {  0.5f, -0.5f,  1.0f, 0.0f },
-        {  0.5f,  0.5f,  1.0f, 1.0f }, { -0.5f,  0.5f,  0.0f, 1.0f }
+        // Posición      // Coordenada UV  // Color
+        { -0.5f, -0.5f,  0.0f, 0.0f,       1.0f, 0.0f, 0.0f }, // Abajo-izq, Rojo
+        {  0.5f, -0.5f,  1.0f, 0.0f,       0.0f, 1.0f, 0.0f }, // Abajo-der, Verde
+        {  0.5f,  0.5f,  1.0f, 1.0f,       0.0f, 0.0f, 1.0f }, // Arriba-der, Azul
+        { -0.5f,  0.5f,  0.0f, 1.0f,       1.0f, 1.0f, 0.0f }  // Arriba-izq, Amarillo
     };
     sg_buffer_desc vbuf_desc = {};
     vbuf_desc.data = SG_RANGE(vertices);
-    vbuf_desc.label = "texture-vertices";
+    vbuf_desc.label = "texture-color-vertices";
     state.bind.vertex_buffers[0] = sg_make_buffer(&vbuf_desc);
 
     // --- 2. Índices y Buffer de Índices ---
     const uint16_t indices[] = { 0, 1, 2,  0, 2, 3 };
     sg_buffer_desc ibuf_desc = {};
     ibuf_desc.data = SG_RANGE(indices);
-    ibuf_desc.usage.index_buffer = true; // ¡Esta línea es crucial!
-    ibuf_desc.label = "texture-indices";
+    ibuf_desc.usage.index_buffer = true;
+    ibuf_desc.label = "texture-color-indices";
     state.bind.index_buffer = sg_make_buffer(&ibuf_desc);
 
     // --- 3. Cargar imagen con STB_image o usar fallback ---
     int img_width, img_height, num_channels;
     const int desired_channels = 4;
-    // Invertir la imagen verticalmente al cargarla para que coincida con las coords de textura de GL
     stbi_set_flip_vertically_on_load(true);
     stbi_uc* pixels = stbi_load("texturas/textura.png", &img_width, &img_height, &num_channels, desired_channels);
 
@@ -100,20 +102,26 @@ static void init(void) {
     state.view = sg_make_view(&view_desc);
 
     // --- 6. Vincular VISTA y sampler a los slots del shader ---
+    // NOTA: Los slots VIEW_tex y SMP_smp son generados por el shader.
+    // Si el shader se llama 'textura_color', los slots podrían ser diferentes.
+    // Se asume que el shader nuevo generará los mismos nombres de slot para tex y smp.
     state.bind.views[VIEW_tex].id = state.view.id;
     state.bind.samplers[SMP_smp].id = state.smp.id;
 
     // --- 7. Crear el Pipeline ---
     sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = sg_make_shader(textura_shader_desc(sg_query_backend()));
+    // Usamos la descripción del NUEVO shader
+    pip_desc.shader = sg_make_shader(textura_color_shader_desc(sg_query_backend()));
     pip_desc.index_type = SG_INDEXTYPE_UINT16;
-    pip_desc.layout.attrs[ATTR_textura_pos].format = SG_VERTEXFORMAT_FLOAT2;
-    pip_desc.layout.attrs[ATTR_textura_uv].format = SG_VERTEXFORMAT_FLOAT2;
-    // Habilitar alpha blending para la transparencia (API antigua)
+    // El layout ahora incluye el color. Los nombres de atributos vienen del shader.
+    pip_desc.layout.attrs[ATTR_textura_color_pos].format = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_textura_color_uv].format = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_textura_color_color].format = SG_VERTEXFORMAT_FLOAT3;
+    
     pip_desc.colors[0].blend.enabled = true;
     pip_desc.colors[0].blend.src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA;
     pip_desc.colors[0].blend.dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-    pip_desc.label = "texture-pipeline";
+    pip_desc.label = "texture-color-pipeline";
     state.pip = sg_make_pipeline(&pip_desc);
 
     // --- 8. Pass Action (color de fondo) ---
@@ -122,7 +130,6 @@ static void init(void) {
 }
 
 void frame(void) {
-    // Usamos la forma más compatible de iniciar el pase de renderizado
     sg_pass pass = {};
     pass.action = state.pass_action;
     pass.swapchain = sglue_swapchain();
@@ -136,7 +143,6 @@ void frame(void) {
 }
 
 void cleanup(void) {
-    // Destruir todos los recursos creados en orden inverso
     sg_destroy_pipeline(state.pip);
     sg_destroy_view(state.view);
     sg_destroy_sampler(state.smp);
@@ -154,7 +160,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
     desc.cleanup_cb = cleanup;
     desc.width = 800;
     desc.height = 600;
-    desc.window_title = "04 - Textura (STB_image)";
+    desc.window_title = "04 - Textura con Color";
     desc.icon.sokol_default = true;
     desc.logger.func = slog_func;
     return desc;
