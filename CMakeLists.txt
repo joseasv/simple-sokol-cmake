@@ -59,8 +59,12 @@ endif()
 # Añadimos tanto el .cpp como el .h generado al ejecutable
 add_executable(${APP_NAME} ${APP_SRC} ${APP_GENERATED_FILES})
 
-# Incluimos el directorio de build para poder hacer #include "archivo.glsl.h"
-target_include_directories(${APP_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+# Incluimos directorios para headers: el de build (para shaders), libs (para stb_image) y sokol
+target_include_directories(${APP_NAME} PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs
+    ${CMAKE_CURRENT_SOURCE_DIR}/sokol
+)
 
 # --- 4. Selección de Backend ---
 
