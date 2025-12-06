@@ -60,7 +60,7 @@ endif()
 add_executable(${APP_NAME} ${APP_SRC} ${APP_GENERATED_FILES})
 
 # Incluimos directorios para headers: el de build (para shaders), libs (para stb_image) y sokol
-target_include_directories(${APP_NAME} PRIVATE 
+target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libs
     ${CMAKE_CURRENT_SOURCE_DIR}/sokol
@@ -87,5 +87,20 @@ elseif(APPLE)
 elseif(UNIX AND NOT APPLE)
     target_compile_definitions(${APP_NAME} PRIVATE SOKOL_GLCORE)
     target_link_libraries(${APP_NAME} X11 Xi Xcursor GL dl pthread)
+
+if(MSVC)
+    # Forzar uso de librerías estáticas (/MT) para evitar errores de DLLs faltantes
+    set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+    )
+    foreach(CompilerFlag ${CompilerFlags})
+        string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+    endforeach()
+endif()
 
 endif()
