@@ -1,11 +1,11 @@
 #define SOKOL_IMPL
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#include <stdio.h> // Para printf
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
 #include "sokol_log.h"
+#include "stb_image.h"
+#include <stdio.h> // Para printf
 
 // Incluimos el shader generado para este ejemplo
 #include "04_2Texturas.glsl.h"
@@ -18,28 +18,32 @@ static struct {
     sg_bindings bind;
     sg_pass_action pass_action;
     sg_image img1, img2;
-    sg_sampler smp1, smp2;
+    sg_sampler smp1;
     sg_view view1, view2;
 } state;
 
-static void init(void) {
+static void init(void)
+{
     sg_desc sgdesc = {};
     sgdesc.environment = sglue_environment();
     sgdesc.logger.func = slog_func;
     sg_setup(&sgdesc);
 
     // --- Buffers de vértices e índices (sin cambios) ---
-    typedef struct { float x, y; float u, v; } vertex_t;
+    typedef struct {
+        float x, y;
+        float u, v;
+    } vertex_t;
     const vertex_t vertices[] = {
-        { -0.5f, -0.5f,  0.0f, 0.0f }, {  0.5f, -0.5f,  1.0f, 0.0f },
-        {  0.5f,  0.5f,  1.0f, 1.0f }, { -0.5f,  0.5f,  0.0f, 1.0f }
+        { -0.5f, -0.5f, 0.0f, 0.0f }, { 0.5f, -0.5f, 1.0f, 0.0f },
+        { 0.5f, 0.5f, 1.0f, 1.0f }, { -0.5f, 0.5f, 0.0f, 1.0f }
     };
     sg_buffer_desc vbuf_desc = {};
     vbuf_desc.data = SG_RANGE(vertices);
     vbuf_desc.label = "quad-vertices";
     state.bind.vertex_buffers[0] = sg_make_buffer(&vbuf_desc);
 
-    const uint16_t indices[] = { 0, 1, 2,  0, 2, 3 };
+    const uint16_t indices[] = { 0, 1, 2, 0, 2, 3 };
     sg_buffer_desc ibuf_desc = {};
     ibuf_desc.data = SG_RANGE(indices);
     ibuf_desc.usage.index_buffer = true;
@@ -56,7 +60,7 @@ static void init(void) {
         printf("Imagen 1 ('texturas/textura.png') cargada con éxito.\n");
         img1_desc.width = img_width;
         img1_desc.height = img_height;
-        img1_desc.data.mip_levels[0] = (sg_range){ .ptr = pixels1, .size = (size_t)(img_width * img_height * 4) };
+        img1_desc.data.mip_levels[0] = (sg_range) { .ptr = pixels1, .size = (size_t)(img_width * img_height * 4) };
         img1_desc.label = "texture-1";
     } else {
         // Si falla, usamos un damero para la textura 1 también
@@ -64,7 +68,9 @@ static void init(void) {
         img1_desc.width = CHECKERBOARD_SIZE;
         img1_desc.height = CHECKERBOARD_SIZE;
         static uint32_t fallback_pixels[CHECKERBOARD_SIZE][CHECKERBOARD_SIZE];
-        for (int y=0; y<CHECKERBOARD_SIZE; y++) for (int x=0; x<CHECKERBOARD_SIZE; x++) fallback_pixels[y][x] = 0xFF0000FF; // Azul
+        for (int y = 0; y < CHECKERBOARD_SIZE; y++)
+            for (int x = 0; x < CHECKERBOARD_SIZE; x++)
+                fallback_pixels[y][x] = 0xFF0000FF; // Azul
         img1_desc.data.mip_levels[0] = SG_RANGE(fallback_pixels);
     }
     state.img1 = sg_make_image(&img1_desc);
@@ -80,7 +86,7 @@ static void init(void) {
         printf("Imagen 2 ('texturas/container.jpg') cargada con éxito.\n");
         img2_desc.width = img_width;
         img2_desc.height = img_height;
-        img2_desc.data.mip_levels[0] = (sg_range){ .ptr = pixels2, .size = (size_t)(img_width * img_height * 4) };
+        img2_desc.data.mip_levels[0] = (sg_range) { .ptr = pixels2, .size = (size_t)(img_width * img_height * 4) };
         img2_desc.label = "texture-2-container";
     } else {
         printf("ADVERTENCIA: No se pudo cargar 'texturas/container.jpg'. Usando textura de damero de fallback para la segunda textura.\n");
@@ -104,7 +110,6 @@ static void init(void) {
     // --- Samplers y Vistas ---
     sg_sampler_desc smp_desc = { .min_filter = SG_FILTER_LINEAR, .mag_filter = SG_FILTER_LINEAR };
     state.smp1 = sg_make_sampler(&smp_desc);
-    state.smp2 = sg_make_sampler(&smp_desc);
 
     // Inicialización C++ compatible para sg_view_desc
     sg_view_desc view1_desc = {};
@@ -119,7 +124,6 @@ static void init(void) {
     state.bind.views[VIEW_tex1].id = state.view1.id;
     state.bind.samplers[SMP_smp1].id = state.smp1.id;
     state.bind.views[VIEW_tex2].id = state.view2.id;
-    state.bind.samplers[SMP_smp2].id = state.smp2.id;
 
     // --- Pipeline ---
     sg_pipeline_desc pip_desc = {};
@@ -138,7 +142,8 @@ static void init(void) {
     state.pass_action.colors[0].clear_value = { 0.3f, 0.3f, 0.3f, 1.0f };
 }
 
-void frame(void) {
+void frame(void)
+{
     sg_pass pass = { .action = state.pass_action, .swapchain = sglue_swapchain() };
     sg_begin_pass(&pass);
     sg_apply_pipeline(state.pip);
@@ -148,12 +153,12 @@ void frame(void) {
     sg_commit();
 }
 
-void cleanup(void) {
+void cleanup(void)
+{
     sg_destroy_pipeline(state.pip);
     sg_destroy_view(state.view1);
     sg_destroy_view(state.view2);
     sg_destroy_sampler(state.smp1);
-    sg_destroy_sampler(state.smp2);
     sg_destroy_image(state.img1);
     sg_destroy_image(state.img2);
     sg_destroy_buffer(state.bind.index_buffer);
@@ -161,8 +166,10 @@ void cleanup(void) {
     sg_shutdown();
 }
 
-sapp_desc sokol_main(int argc, char* argv[]) {
-    (void)argc; (void)argv;
+sapp_desc sokol_main(int argc, char* argv[])
+{
+    (void)argc;
+    (void)argv;
     sapp_desc desc = {};
     desc.init_cb = init;
     desc.frame_cb = frame;
