@@ -1,7 +1,3 @@
-#define SOKOL_IMPL
-#define STB_IMAGE_IMPLEMENTATION
-#define SOKOL_TIME_IMPL
-
 // Configuración de HMM
 #define HANDMADE_MATH_IMPLEMENTATION
 #define HANDMADE_MATH_CPP_MODE
@@ -9,14 +5,16 @@
 #define HANDMADE_MATH_USE_DEGREES
 #include "libs/HandmadeMath.h"
 
-#include "sokol_app.h"
-#include "sokol_gfx.h"
-#include "sokol_glue.h"
-#include "sokol_log.h"
-#include "sokol_time.h"
-#include "stb_image.h"
-#include <stdio.h>
-#include <string.h> // <--- [NUEVO] Necesario para memcpy
+#define STB_IMAGE_IMPLEMENTATION
+#include "libs/stb_image.h"
+
+#define SOKOL_IMPL
+#define SOKOL_TIME_IMPL
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_glue.h"
+#include "sokol/sokol_log.h"
+#include "sokol/sokol_time.h"
 
 #include "05_Transformacion2D.glsl.h"
 
@@ -29,6 +27,10 @@ static struct {
     sg_sampler smp;
     sg_view view;
 } state;
+
+struct {
+    HMM_Mat4 mvp;
+} vs_params;
 
 static void init(void)
 {
@@ -114,11 +116,7 @@ void frame(void)
     HMM_Mat4 transform = HMM_Rotate_RH(90.0f, HMM_V3(0.0f, 0.0f, 1.0f));
 
     // 3. Preparar Uniforms
-    vs_params_t vs_params;
-
-    // Copiamos la memoria de la matriz HMM al array del shader
-    // sizeof(transform) son 64 bytes (16 floats), igual que vs_params.transform
-    memcpy(vs_params.transform, &transform, sizeof(transform));
+    vs_params.mvp = transform;
 
     // 4. Render
     sg_pass pass = {};

@@ -1,10 +1,11 @@
 #define SOKOL_IMPL
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_glue.h"
+#include "sokol/sokol_log.h"
+
 #define STB_IMAGE_IMPLEMENTATION
-#include "sokol_app.h"
-#include "sokol_gfx.h"
-#include "sokol_glue.h"
-#include "sokol_log.h"
-#include "stb_image.h"
+#include "libs/stb_image.h"
 #include <stdio.h> // Para printf
 
 // Incluimos el shader generado

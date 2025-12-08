@@ -7,16 +7,16 @@
 #define HANDMADE_MATH_IMPLEMENTATION
 #define HANDMADE_MATH_CPP_MODE
 #define HANDMADE_MATH_USE_DEGREES
-#include "HandmadeMath.h"
+#include "libs/HandmadeMath.h"
 
 // 2. Implementación de librerías
 #define SOKOL_IMPL
 #define STB_IMAGE_IMPLEMENTATION // <--- Necesario para cargar imágenes
-#include "sokol_app.h"
-#include "sokol_gfx.h"
-#include "sokol_glue.h"
-#include "sokol_log.h"
-#include "stb_image.h" // <--- Librería de carga de imágenes
+#include "libs/stb_image.h" // <--- Librería de carga de imágenes
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_glue.h"
+#include "sokol/sokol_log.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -34,6 +34,11 @@ static struct {
     sg_view view; // Legacy API
     float rx, ry;
 } state;
+
+// Usamos struct anónimo compatible con el shader si no quieres definir tipos
+struct {
+    HMM_Mat4 mvp;
+} vs_params;
 
 void init(void)
 {
@@ -183,10 +188,7 @@ void frame(void)
 
     HMM_Mat4 mvp = proj * view * model;
 
-    // Usamos struct anónimo compatible con el shader si no quieres definir tipos
-    struct {
-        HMM_Mat4 mvp;
-    } vs_params;
+    // Usa el struct definido a nivel global
     vs_params.mvp = mvp;
 
     sg_pass pass = {};
@@ -197,8 +199,7 @@ void frame(void)
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
 
-    sg_range params_range = SG_RANGE(vs_params);
-    sg_apply_uniforms(0, &params_range);
+    sg_apply_uniforms(UB_vs_params, SG_RANGE(vs_params));
 
     sg_draw(0, 36, 1);
     sg_end_pass();

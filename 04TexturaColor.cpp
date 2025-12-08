@@ -1,11 +1,12 @@
-#define SOKOL_IMPL
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "libs/stb_image.h"
+
+#define SOKOL_IMPL
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_glue.h"
+#include "sokol/sokol_log.h"
 #include <stdio.h> // Para printf
-#include "sokol_app.h"
-#include "sokol_gfx.h"
-#include "sokol_glue.h"
-#include "sokol_log.h"
 
 // Incluimos el NUEVO shader generado
 #include "04TexturaColor.glsl.h"
@@ -22,7 +23,8 @@ static struct {
     sg_view view;
 } state;
 
-static void init(void) {
+static void init(void)
+{
     // --- Configuración inicial de Sokol GFX ---
     sg_desc sgdesc = {};
     sgdesc.environment = sglue_environment();
@@ -30,13 +32,17 @@ static void init(void) {
     sg_setup(&sgdesc);
 
     // --- 1. Vértices y Buffer de Vértices (con color) ---
-    typedef struct { float x, y; float u, v; float r, g, b; } vertex_t;
+    typedef struct {
+        float x, y;
+        float u, v;
+        float r, g, b;
+    } vertex_t;
     const vertex_t vertices[] = {
         // Posición      // Coordenada UV  // Color
-        { -0.5f, -0.5f,  0.0f, 0.0f,       1.0f, 0.0f, 0.0f }, // Abajo-izq, Rojo
-        {  0.5f, -0.5f,  1.0f, 0.0f,       0.0f, 1.0f, 0.0f }, // Abajo-der, Verde
-        {  0.5f,  0.5f,  1.0f, 1.0f,       0.0f, 0.0f, 1.0f }, // Arriba-der, Azul
-        { -0.5f,  0.5f,  0.0f, 1.0f,       1.0f, 1.0f, 0.0f }  // Arriba-izq, Amarillo
+        { -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, // Abajo-izq, Rojo
+        { 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f }, // Abajo-der, Verde
+        { 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f }, // Arriba-der, Azul
+        { -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f } // Arriba-izq, Amarillo
     };
     sg_buffer_desc vbuf_desc = {};
     vbuf_desc.data = SG_RANGE(vertices);
@@ -44,7 +50,7 @@ static void init(void) {
     state.bind.vertex_buffers[0] = sg_make_buffer(&vbuf_desc);
 
     // --- 2. Índices y Buffer de Índices ---
-    const uint16_t indices[] = { 0, 1, 2,  0, 2, 3 };
+    const uint16_t indices[] = { 0, 1, 2, 0, 2, 3 };
     sg_buffer_desc ibuf_desc = {};
     ibuf_desc.data = SG_RANGE(indices);
     ibuf_desc.usage.index_buffer = true;
@@ -64,7 +70,7 @@ static void init(void) {
         printf("Imagen 'texturas/textura.png' cargada con éxito (%d x %d)\n", img_width, img_height);
         img_desc.width = img_width;
         img_desc.height = img_height;
-        img_desc.data.mip_levels[0] = (sg_range){ .ptr = pixels, .size = (size_t)(img_width * img_height * 4) };
+        img_desc.data.mip_levels[0] = (sg_range) { .ptr = pixels, .size = (size_t)(img_width * img_height * 4) };
         img_desc.label = "texture-from-file";
     } else {
         printf("ADVERTENCIA: No se pudo cargar 'texturas/textura.png'. Usando textura de damero de fallback.\n");
@@ -80,7 +86,7 @@ static void init(void) {
         img_desc.data.mip_levels[0] = SG_RANGE(fallback_pixels);
         img_desc.label = "checkerboard-texture";
     }
-    
+
     state.img = sg_make_image(&img_desc);
 
     if (pixels) {
@@ -95,7 +101,7 @@ static void init(void) {
     smp_desc.wrap_v = SG_WRAP_REPEAT;
     smp_desc.label = "texture-sampler";
     state.smp = sg_make_sampler(&smp_desc);
-    
+
     // --- 5. Crear una VISTA para la imagen ---
     sg_view_desc view_desc = {};
     view_desc.texture.image = state.img;
@@ -117,7 +123,7 @@ static void init(void) {
     pip_desc.layout.attrs[ATTR_textura_color_pos].format = SG_VERTEXFORMAT_FLOAT2;
     pip_desc.layout.attrs[ATTR_textura_color_uv].format = SG_VERTEXFORMAT_FLOAT2;
     pip_desc.layout.attrs[ATTR_textura_color_color].format = SG_VERTEXFORMAT_FLOAT3;
-    
+
     pip_desc.colors[0].blend.enabled = true;
     pip_desc.colors[0].blend.src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA;
     pip_desc.colors[0].blend.dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
@@ -129,7 +135,8 @@ static void init(void) {
     state.pass_action.colors[0].clear_value = { 0.3f, 0.3f, 0.3f, 1.0f };
 }
 
-void frame(void) {
+void frame(void)
+{
     sg_pass pass = {};
     pass.action = state.pass_action;
     pass.swapchain = sglue_swapchain();
@@ -142,7 +149,8 @@ void frame(void) {
     sg_commit();
 }
 
-void cleanup(void) {
+void cleanup(void)
+{
     sg_destroy_pipeline(state.pip);
     sg_destroy_view(state.view);
     sg_destroy_sampler(state.smp);
@@ -152,8 +160,10 @@ void cleanup(void) {
     sg_shutdown();
 }
 
-sapp_desc sokol_main(int argc, char* argv[]) {
-    (void)argc; (void)argv;
+sapp_desc sokol_main(int argc, char* argv[])
+{
+    (void)argc;
+    (void)argv;
     sapp_desc desc = {};
     desc.init_cb = init;
     desc.frame_cb = frame;

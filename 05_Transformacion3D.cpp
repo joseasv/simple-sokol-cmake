@@ -1,20 +1,19 @@
-#define SOKOL_IMPL
-#define STB_IMAGE_IMPLEMENTATION
-#define SOKOL_TIME_IMPL
-
 // Configuración de HMM
 #define HANDMADE_MATH_IMPLEMENTATION
 #define HANDMADE_MATH_CPP_MODE
 #define HANDMADE_MATH_USE_DEGREES
 #include "libs/HandmadeMath.h"
 
-#include "sokol_app.h"
-#include "sokol_gfx.h"
-#include "sokol_glue.h"
-#include "sokol_log.h"
-#include "sokol_time.h"
-#include "stb_image.h"
-#include <string.h> // <--- [NUEVO] Necesario para memcpy
+#define STB_IMAGE_IMPLEMENTATION
+#include "libs/stb_image.h"
+
+#define SOKOL_IMPL
+#define SOKOL_TIME_IMPL
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_glue.h"
+#include "sokol/sokol_log.h"
+#include "sokol/sokol_time.h"
 
 #include "05_Transformacion3D.glsl.h"
 
@@ -27,6 +26,10 @@ static struct {
     sg_sampler smp;
     sg_view view;
 } state;
+
+struct {
+    HMM_Mat4 mvp;
+} vs_params;
 
 static void init(void)
 {
@@ -123,9 +126,7 @@ void frame()
     HMM_Mat4 mvp = projection * view * model;
 
     // 3. Preparar datos para el Shader
-    vs_params_t vs_params;
-    // CORRECCIÓN 1: Usamos .transform porque así se llama en tu GLSL
-    memcpy(vs_params.transform, &mvp, sizeof(mvp));
+    vs_params.mvp = mvp;
 
     // 4. Iniciar Pass (Renderizado)
     // CORRECCIÓN 2: Crear variable explícita para sg_pass (Sintaxis C++)
@@ -138,12 +139,7 @@ void frame()
     sg_apply_bindings(&state.bind);
 
     // 5. Aplicar Uniformes
-    // CORRECCIÓN 3: Crear variable explícita para el rango
-    sg_range params_range = SG_RANGE(vs_params);
-
-    // CORRECCIÓN 4: Usar SG_SHADERSTAGE_VERTEX
-    // El '0' es el binding=0 que pusiste en el shader layout(binding=0)
-    sg_apply_uniforms(0, &params_range);
+    sg_apply_uniforms(UB_vs_params, SG_RANGE(vs_params));
 
     sg_draw(0, 6, 1);
     sg_end_pass();
