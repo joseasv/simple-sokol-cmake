@@ -1,7 +1,3 @@
-// -----------------------------------------------------------------------------
-// 06_Cubo3D.cpp
-// Carga de textura "texturas/container.jpg" + Cubo 3D + Legacy API
-// -----------------------------------------------------------------------------
 
 // 1. Matemáticas primero (para evitar conflictos de macros en Linux)
 #define HANDMADE_MATH_IMPLEMENTATION
