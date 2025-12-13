@@ -1,7 +1,6 @@
 // Configuración de HMM
 #define HANDMADE_MATH_IMPLEMENTATION
 #define HANDMADE_MATH_CPP_MODE
-#define HANDMADE_MATH_NO_SIMD
 #define HANDMADE_MATH_USE_DEGREES
 #include "libs/HandmadeMath.h"
 
@@ -114,9 +113,11 @@ void frame(void)
     // float angulo = (float)time * 15.0f; // 15 grados por segundo
     // HMM_Mat4 transform = HMM_Rotate_RH(angulo, HMM_V3(0.0f, 0.0f, 1.0f));
     HMM_Mat4 transform = HMM_Rotate_RH(90.0f, HMM_V3(0.0f, 0.0f, 1.0f));
+    // HMM_Mat4 transform = HMM_Scale(HMM_V3(1.0f, 2.0f, 1.0f));
 
     // 3. Preparar Uniforms
-    vs_params.mvp = transform;
+    vs_params.mvp
+        = transform;
 
     // 4. Render
     sg_pass pass = {};

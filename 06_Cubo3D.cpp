@@ -29,6 +29,8 @@ static struct {
     sg_sampler smp;
     sg_view view; // Legacy API
     float rx, ry;
+    HMM_Mat4 m_view;
+    HMM_Mat4 m_proj;
 } state;
 
 // Usamos struct anónimo compatible con el shader si no quieres definir tipos
@@ -154,8 +156,8 @@ void init(void)
 
     // Activar Depth Test
     // [DESCOMENTAR ESTO PARA ACTIVAR Z-BUFFER]
-    // pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
-    // pip_desc.depth.write_enabled = true;
+    pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
+    pip_desc.depth.write_enabled = true;
 
     state.pip = sg_make_pipeline(&pip_desc);
 
@@ -164,6 +166,13 @@ void init(void)
     state.pass_action.colors[0].clear_value = { 0.2f, 0.3f, 0.3f, 1.0f };
     state.pass_action.depth.load_action = SG_LOADACTION_CLEAR;
     state.pass_action.depth.clear_value = 1.0f;
+
+    float s_width = (float)sapp_width();
+    float s_height = (float)sapp_height();
+    float aspect = s_width / s_height;
+
+    state.m_proj = HMM_Perspective_RH_NO(60.0f, aspect, 0.01f, 100.0f);
+    state.m_view = HMM_Translate(HMM_V3(0.0f, 0.0f, -3.0f));
 }
 
 void frame(void)
@@ -172,17 +181,10 @@ void frame(void)
     state.rx += 30.0f * t;
     state.ry += 50.0f * t;
 
-    float width = (float)sapp_width();
-    float height = (float)sapp_height();
-    float aspect = width / height;
-
-    HMM_Mat4 proj = HMM_Perspective_RH_NO(60.0f, aspect, 0.01f, 100.0f);
-    HMM_Mat4 view = HMM_Translate(HMM_V3(0.0f, 0.0f, -3.0f));
-
     HMM_Mat4 model = HMM_Rotate_RH(state.rx, HMM_V3(1.0f, 0.0f, 0.0f));
     model = model * HMM_Rotate_RH(state.ry, HMM_V3(0.0f, 1.0f, 0.0f));
 
-    HMM_Mat4 mvp = proj * view * model;
+    HMM_Mat4 mvp = state.m_proj * state.m_view * model;
 
     // Usa el struct definido a nivel global
     vs_params.mvp = mvp;
@@ -194,9 +196,7 @@ void frame(void)
 
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
-
     sg_apply_uniforms(UB_vs_params, SG_RANGE(vs_params));
-
     sg_draw(0, 36, 1);
     sg_end_pass();
     sg_commit();

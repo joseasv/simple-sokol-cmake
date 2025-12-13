@@ -2,7 +2,6 @@
 @vs vs
     in vec2 pos;
 in vec2 uv;
-
 out vec2 v_uv;
 
 // Bloque de uniforms: La matriz de transformación
