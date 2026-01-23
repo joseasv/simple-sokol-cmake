@@ -141,11 +141,11 @@ void frame(void)
         cameraPos = cameraPos + (cameraFront * cameraSpeed);
     if (keys[SAPP_KEYCODE_S])
         cameraPos = cameraPos - (cameraFront * cameraSpeed);
-    if (keys[SAPP_KEYCODE_A]) {
+    if (keys[SAPP_KEYCODE_A]) { // Moverse a la izquierda
         HMM_Vec3 right = HMM_NormV3(HMM_Cross(cameraFront, cameraUp));
         cameraPos = cameraPos - (right * cameraSpeed);
     }
-    if (keys[SAPP_KEYCODE_D]) {
+    if (keys[SAPP_KEYCODE_D]) { // Moverse a la derecha
         HMM_Vec3 right = HMM_NormV3(HMM_Cross(cameraFront, cameraUp));
         cameraPos = cameraPos + (right * cameraSpeed);
     }

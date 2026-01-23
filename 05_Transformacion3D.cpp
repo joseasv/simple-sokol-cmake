@@ -17,7 +17,6 @@
 
 #include "05_Transformacion3D.glsl.h"
 
-// ... (Tu struct 'state' y función 'init' NO cambian, déjalos igual) ...
 static struct {
     sg_pipeline pip;
     sg_bindings bind;
@@ -33,9 +32,6 @@ struct {
 
 static void init(void)
 {
-    // ... (Copia aquí el contenido de tu init anterior que ya funcionaba) ...
-    // Para no alargar la respuesta, asumo que usas el mismo init() que
-    // me pasaste antes, que estaba correcto.
     sg_desc sgdesc = {};
     sgdesc.environment = sglue_environment();
     sgdesc.logger.func = slog_func;
@@ -103,7 +99,6 @@ static void init(void)
     state.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
     state.pass_action.colors[0].clear_value = { 0.2f, 0.2f, 0.2f, 1.0f };
 }
-// ... (Fin del init resumen) ...
 
 void frame()
 {
@@ -129,7 +124,6 @@ void frame()
     vs_params.mvp = mvp;
 
     // 4. Iniciar Pass (Renderizado)
-    // CORRECCIÓN 2: Crear variable explícita para sg_pass (Sintaxis C++)
     sg_pass pass_desc = { 0 };
     pass_desc.action = state.pass_action;
     pass_desc.swapchain = sglue_swapchain();

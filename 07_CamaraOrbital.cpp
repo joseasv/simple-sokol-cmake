@@ -47,7 +47,7 @@ static HMM_Vec3 cubePositions[] = {
     HMM_V3(1.5f, 0.2f, -1.5f), HMM_V3(-1.3f, 1.0f, -1.5f)
 };
 
-// Función de carga de textura idéntica a tus ejemplos funcionales
+// Función de carga de textura
 sg_image load_texture(const char* path)
 {
     int w, h, c;
@@ -130,16 +130,29 @@ void init(void)
 void frame(void)
 {
     state.acc_time += (float)sapp_frame_duration();
+    /*static float acc_time = 0;
+    acc_time += (float)sapp_frame_duration();*/
 
     float radius = 10.0f;
     float camX = sinf(state.acc_time) * radius;
     float camZ = cosf(state.acc_time) * radius;
 
-    // CORRECCIÓN: HMM_LookAt_RH (Mano Derecha)
+    // HMM_LookAt_RH (Mano Derecha)
     HMM_Mat4 view = HMM_LookAt_RH(HMM_V3(camX, 0.0f, camZ), HMM_V3(0.0f, 0.0f, 0.0f), HMM_V3(0.0f, 1.0f, 0.0f));
-    HMM_Mat4 proj = HMM_Perspective_RH_NO(45.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
 
-    sg_pass pass = {};
+    sg_backend backend = sg_query_backend();
+
+    HMM_Mat4 proj;
+    if (backend == SG_BACKEND_GLCORE) {
+        // Linux / Mac antiguo (OpenGL): Usa rango -1 a 1
+        proj = HMM_Perspective_RH_NO(45.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+    } else {
+        // Windows (D3D11) / Mac nuevo (Metal): Usa rango 0 a 1
+        proj = HMM_Perspective_RH_ZO(45.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+    }
+
+    sg_pass pass
+        = {};
     pass.action = state.pass_action;
     pass.swapchain = sglue_swapchain();
     sg_begin_pass(&pass);
