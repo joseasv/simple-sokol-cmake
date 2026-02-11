@@ -236,7 +236,16 @@ void frame(void)
     HMM_Vec3 camFront = HMM_NormV3(target - camPos);
 
     HMM_Mat4 view = HMM_LookAt_RH(camPos, target, HMM_V3(0.0f, 1.0f, 0.0f));
-    HMM_Mat4 proj = HMM_Perspective_RH_NO(60.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+
+    sg_backend backend = sg_query_backend();
+    HMM_Mat4 proj;
+    if (backend == SG_BACKEND_GLCORE) {
+        // Linux / Mac antiguo (OpenGL): Usa rango -1 a 1
+        proj = HMM_Perspective_RH_NO(45.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+    } else {
+        // Windows (D3D11) / Mac nuevo (Metal): Usa rango 0 a 1
+        proj = HMM_Perspective_RH_ZO(45.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+    }
 
     sg_pass pass = {};
     pass.action = state.pass_action;

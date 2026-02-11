@@ -252,7 +252,16 @@ void frame(void)
     camPos.Z = state.cam_dist * cosf(r_pitch) * cosf(r_yaw);
 
     HMM_Mat4 view = HMM_LookAt_RH(camPos, HMM_V3(0.0f, 0.0f, 0.0f), HMM_V3(0.0f, 1.0f, 0.0f));
-    HMM_Mat4 proj = HMM_Perspective_RH_NO(60.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+
+    sg_backend backend = sg_query_backend();
+    HMM_Mat4 proj;
+    if (backend == SG_BACKEND_GLCORE) {
+        // Linux / Mac antiguo (OpenGL): Usa rango -1 a 1
+        proj = HMM_Perspective_RH_NO(45.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+    } else {
+        // Windows (D3D11) / Mac nuevo (Metal): Usa rango 0 a 1
+        proj = HMM_Perspective_RH_ZO(45.0f, (float)sapp_width() / (float)sapp_height(), 0.1f, 100.0f);
+    }
 
     // 2. Mover la luz (Orbita suavemente en el tiempo)
     float time = (float)sapp_frame_count() * 0.01f;
