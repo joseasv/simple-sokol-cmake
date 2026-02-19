@@ -1,5 +1,3 @@
-@header const float PI = 3.14159265359;
-
 // --- VERTEX SHADER ---
 @vs vs
     in vec3 aPos;

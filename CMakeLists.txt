@@ -59,6 +59,8 @@ endif()
 # Añadimos tanto el .cpp como el .h generado al ejecutable
 add_executable(${APP_NAME} ${APP_SRC} ${APP_GENERATED_FILES})
 
+find_package(assimp REQUIRED)
+
 # Incluimos directorios para headers: el de build (para shaders), libs (para stb_image) y sokol
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -86,7 +88,7 @@ elseif(APPLE)
 
 elseif(UNIX AND NOT APPLE)
     target_compile_definitions(${APP_NAME} PRIVATE SOKOL_GLCORE)
-    target_link_libraries(${APP_NAME} X11 Xi Xcursor GL dl pthread)
+    target_link_libraries(${APP_NAME} X11 Xi Xcursor GL dl pthread assimp)
 
 if(MSVC)
     # Forzar uso de librerías estáticas (/MT) para evitar errores de DLLs faltantes
