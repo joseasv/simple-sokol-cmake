@@ -36,6 +36,7 @@ layout(binding = 1) uniform fs_params
     vec3 viewPos;
     vec3 lightPos;
     vec3 lightColor;
+    int useLighting; // <-- Changed from bool to int
 };
 
 // Nombres coinciden con lo que asignamos en la clase Mesh
@@ -51,24 +52,27 @@ void main()
     // 1. Obtener colores de las texturas
     vec3 colorDiff = texture(sampler2D(texture_diffuse1, smp), TexCoords).rgb;
 
-    // CORRECCIÓN AQUÍ: Envolver la lectura del canal .r en un vec3()
-    vec3 colorSpec = vec3(texture(sampler2D(texture_specular1, smp), TexCoords).r);
+    if (useLighting == 1) { // <-- Changed to explicit comparison
+        vec3 colorSpec = vec3(texture(sampler2D(texture_specular1, smp), TexCoords).r);
 
-    // 2. Iluminación Básica (Blinn-Phong)
-    vec3 ambient = 0.1 * colorDiff;
+        // 2. Iluminación Básica (Blinn-Phong)
+        vec3 ambient = 0.1 * colorDiff;
 
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(lightPos - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * colorDiff;
+        vec3 norm = normalize(Normal);
+        vec3 lightDir = normalize(lightPos - FragPos);
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = diff * colorDiff;
 
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
-    vec3 specular = vec3(0.5) * spec * colorSpec;
+        vec3 viewDir = normalize(viewPos - FragPos);
+        vec3 halfwayDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
+        vec3 specular = vec3(0.5) * spec * colorSpec;
 
-    vec3 result = (ambient + diffuse + specular) * lightColor;
-    FragColor = vec4(result, 1.0);
+        vec3 result = (ambient + diffuse + specular) * lightColor;
+        FragColor = vec4(result, 1.0);
+    } else {
+        FragColor = vec4(colorDiff, 1.0); // Diffuse color only
+    }
 }
 @end
 
