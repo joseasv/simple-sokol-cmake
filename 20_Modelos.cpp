@@ -262,7 +262,8 @@ void init(void)
     state.pip = sg_make_pipeline(&pip_desc);
 
     state.myModel = new Model("objects/backpack/backpack.obj", state.smp);
-    // state.myModel = new Model("objects/Link(Adult)/Link Adult.obj", state.smp);
+    //state.myModel = new Model("objects/Link(Adult)/Link Adult.obj", state.smp);
+    //state.myModel = new Model("objects/Metal Gear REX/StgMetalgearRex.dae", state.smp);
 }
 
 // --- INPUT ---
